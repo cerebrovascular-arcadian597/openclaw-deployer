@@ -80,6 +80,3 @@ jobs:
           - 点击"一键安装"自动完成所有步骤
           - 安装完成后点击"启动服务"
           - 如显示离线，点击"修复认证"按钮
-      with:
-        tag_name: ${{ github.ref_name }}
-        release_name: OpenClaw 部署助手 ${{ github.ref_name }}
