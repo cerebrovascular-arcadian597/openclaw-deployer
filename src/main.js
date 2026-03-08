@@ -1120,12 +1120,23 @@ ipcMain.handle('get-install-paths', async () => {
 ipcMain.handle('save-install-paths', async (event, paths) => {
   try {
     const config = loadConfig();
-    if (paths.openclawPath) {
-      config.openclawPath = paths.openclawPath;
+    
+    if ('openclawPath' in paths) {
+      if (paths.openclawPath && paths.openclawPath.trim()) {
+        config.openclawPath = paths.openclawPath.trim();
+      } else {
+        delete config.openclawPath;
+      }
     }
-    if (paths.clawxPath) {
-      config.clawxPath = paths.clawxPath;
+    
+    if ('clawxPath' in paths) {
+      if (paths.clawxPath && paths.clawxPath.trim()) {
+        config.clawxPath = paths.clawxPath.trim();
+      } else {
+        delete config.clawxPath;
+      }
     }
+    
     saveConfig(config);
     return { success: true };
   } catch (error) {

@@ -891,7 +891,10 @@ async function resetInstallPaths() {
   elements.openclawPath.value = '';
   elements.clawxPath.value = '';
   
-  const result = await window.electronAPI.saveInstallPaths({});
+  const result = await window.electronAPI.saveInstallPaths({
+    openclawPath: '',
+    clawxPath: ''
+  });
   if (result.success) {
     showToast('已重置为默认路径', 'success');
     await refreshAllStatus();
