@@ -1052,7 +1052,14 @@ async function downloadFile(url, destPath, event) {
   }
   
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(destPath);
+    let file;
+    try {
+      file = fs.createWriteStream(destPath);
+    } catch (err) {
+      reject(new Error('无法创建临时文件: ' + err.message));
+      return;
+    }
+    
     const protocol = url.startsWith('https') ? https : http;
     
     const options = {};
@@ -1063,14 +1070,14 @@ async function downloadFile(url, destPath, event) {
     const request = protocol.get(url, options, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
         file.close();
-        fs.unlinkSync(destPath);
+        try { fs.unlinkSync(destPath); } catch (e) {}
         downloadFile(response.headers.location, destPath, event).then(resolve).catch(reject);
         return;
       }
       
       if (response.statusCode !== 200) {
         file.close();
-        fs.unlinkSync(destPath);
+        try { fs.unlinkSync(destPath); } catch (e) {}
         reject(new Error(`下载失败: HTTP ${response.statusCode}`));
         return;
       }
@@ -1095,13 +1102,13 @@ async function downloadFile(url, destPath, event) {
       });
 
       file.on('error', (err) => {
-        fs.unlink(destPath, () => {});
+        try { fs.unlink(destPath, () => {}); } catch (e) {}
         reject(err);
       });
     });
 
     request.on('error', (err) => {
-      fs.unlink(destPath, () => {});
+      try { fs.unlink(destPath, () => {}); } catch (e) {}
       reject(err);
     });
 
