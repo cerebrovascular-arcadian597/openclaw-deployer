@@ -206,7 +206,10 @@ function bindEvents() {
   });
   
   window.electronAPI.onDownloadProgress((data) => {
-    updateProgress(data.progress);
+    const downloadedMB = (data.downloaded / 1024 / 1024).toFixed(2);
+    const totalMB = (data.total / 1024 / 1024).toFixed(2);
+    const progressText = `下载中: ${downloadedMB} MB / ${totalMB} MB`;
+    updateProgress(data.progress, progressText);
   });
 
   window.electronAPI.onInstallProgress((data) => {

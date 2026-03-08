@@ -555,30 +555,66 @@ async function buildOpenClawInternal(event) {
     
     event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在构建 OpenClaw...\n' });
     
-    const buildSteps = [
-      { name: 'tsdown 构建', cmd: 'node', args: ['scripts/tsdown-build.mjs'] },
-      { name: '复制 SDK 别名', cmd: 'node', args: ['scripts/copy-plugin-sdk-root-alias.mjs'] },
-      { name: '生成类型定义', cmd: 'pnpm', args: ['build:plugin-sdk:dts'] },
-      { name: '写入构建信息', cmd: 'node', args: ['--import', 'tsx', 'scripts/write-build-info.ts'] },
-      { name: '写入启动元数据', cmd: 'node', args: ['--import', 'tsx', 'scripts/write-cli-startup-metadata.ts'] },
-      { name: '写入兼容层', cmd: 'node', args: ['--import', 'tsx', 'scripts/write-cli-compat.ts'] }
+    // 核心构建步骤（必须顺序执行）
+    const coreSteps = [
+      { name: 'tsdown 构建', cmd: 'node', args: ['scripts/tsdown-build.mjs'], timeout: 120000 },
+      { name: '复制 SDK 别名', cmd: 'node', args: ['scripts/copy-plugin-sdk-root-alias.mjs'], timeout: 30000 }
     ];
     
-    for (const step of buildSteps) {
+    // 可选步骤（失败不影响整体）
+    const optionalSteps = [
+      { name: '生成类型定义', cmd: 'pnpm', args: ['build:plugin-sdk:dts'], timeout: 60000 },
+      { name: '写入构建信息', cmd: 'node', args: ['--import', 'tsx', 'scripts/write-build-info.ts'], timeout: 30000 },
+      { name: '写入启动元数据', cmd: 'node', args: ['--import', 'tsx', 'scripts/write-cli-startup-metadata.ts'], timeout: 30000 },
+      { name: '写入兼容层', cmd: 'node', args: ['--import', 'tsx', 'scripts/write-cli-compat.ts'], timeout: 30000 }
+    ];
+    
+    // 执行核心步骤
+    for (const step of coreSteps) {
       event.sender.send('command-output', { type: 'stdout', data: `[信息] ${step.name}...\n` });
       
-      try {
+      const child = spawn(step.cmd, step.args, {
+        cwd: openclawPath,
+        shell: true,
+        env: { ...process.env }
+      });
+      
+      const result = await handleStreamOutput(child, event);
+      if (!result.success) {
+        event.sender.send('command-output', { type: 'stderr', data: `[错误] ${step.name} 失败\n` });
+        return { success: false, error: `${step.name} 失败` };
+      }
+    }
+    
+    // 并行执行可选步骤（不阻塞主流程）
+    event.sender.send('command-output', { type: 'stdout', data: '[信息] 执行可选构建步骤...\n' });
+    const optionalPromises = optionalSteps.map(step => {
+      return new Promise(resolve => {
         const child = spawn(step.cmd, step.args, {
           cwd: openclawPath,
           shell: true,
           env: { ...process.env }
         });
         
-        await handleStreamOutput(child, event);
-      } catch (e) {
-        event.sender.send('command-output', { type: 'stderr', data: `[警告] ${step.name} 失败，继续...\n` });
-      }
-    }
+        const timeout = setTimeout(() => {
+          child.kill();
+          event.sender.send('command-output', { type: 'stderr', data: `[警告] ${step.name} 超时，跳过\n` });
+          resolve();
+        }, step.timeout || 60000);
+        
+        child.on('close', () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+        
+        child.on('error', () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+      });
+    });
+    
+    await Promise.all(optionalPromises);
     
     // 检查构建结果
     const distPath = path.join(openclawPath, 'dist');
