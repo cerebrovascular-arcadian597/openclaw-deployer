@@ -9,7 +9,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build": "electron-builder --win",
+    "build": "electron-builder --win --x64",
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
@@ -57,6 +57,16 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "OpenClaw 部署助手"
+    },
+    "electronDist": "node_modules/electron/dist",
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
+    "electronDownload": {
+      "mirror": "https://npm.taobao.org/mirrors/electron/"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }
