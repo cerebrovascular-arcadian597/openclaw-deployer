@@ -62,11 +62,13 @@
     "nodeGypRebuild": false,
     "buildDependenciesFromSource": false,
     "electronDownload": {
-      "mirror": "https://npm.taobao.org/mirrors/electron/"
+      "mirror": "https://npmmirror.com/mirrors/electron/"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "asar": true,
+    "compression": "store"
   }
 }
