@@ -507,7 +507,11 @@ async function downloadOpenClawInternal(event) {
       try {
         fs.unlinkSync(tempZip);
       } catch (e) {
-        await execPromise(`powershell -Command "Remove-Item -Path '${tempZip}' -Force -ErrorAction SilentlyContinue"`);
+        try {
+          await execPromise(`powershell -Command "Remove-Item -Path '${tempZip}' -Force -ErrorAction SilentlyContinue"`);
+        } catch (psErr) {
+          // 忽略删除错误
+        }
       }
     }
     
@@ -1079,11 +1083,14 @@ async function downloadFile(url, destPath, event) {
     try {
       fs.unlinkSync(destPath);
     } catch (e) {
-      // 文件被占用，使用 PowerShell 删除
+      // 文件被占用，使用 PowerShell 删除（静默失败）
       try {
         await execPromise(`powershell -Command "Remove-Item -Path '${destPath}' -Force -ErrorAction SilentlyContinue"`);
       } catch (psErr) {
-        // PowerShell 也失败，使用新文件名
+        // PowerShell 也失败，忽略并使用新文件名
+      }
+      // 无论删除成功与否，都使用新文件名
+      if (fs.existsSync(destPath)) {
         destPath = destPath.replace('.zip', '_' + Date.now() + '.zip');
       }
     }
