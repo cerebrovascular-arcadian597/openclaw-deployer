@@ -81,6 +81,8 @@ function cacheElements() {
   elements.installActions = document.getElementById('install-actions');
   elements.progressFill = document.getElementById('progress-fill');
   elements.progressText = document.getElementById('progress-text');
+  elements.progressStep = document.getElementById('progress-step');
+  elements.progressSpinner = document.getElementById('progress-spinner');
   
   // 配置表单
   elements.configForm = document.getElementById('config-form');
@@ -208,7 +210,8 @@ function bindEvents() {
   });
 
   window.electronAPI.onInstallProgress((data) => {
-    updateProgress(Math.round((data.step / data.total) * 100), data.name);
+    const progress = Math.round((data.step / data.total) * 100);
+    updateProgress(progress, `正在${data.name}...`, `步骤 ${data.step}/${data.total}: ${data.name}`);
   });
 }
 
@@ -710,14 +713,21 @@ async function installGitIfNeeded() {
 
 async function completeInstall() {
   elements.progressText.textContent = '安装完成！';
+  elements.progressStep.textContent = '';
+  if (elements.progressSpinner) {
+    elements.progressSpinner.style.display = 'none';
+  }
   elements.serviceUrl.textContent = 'http://127.0.0.1:18789';
   await refreshAllStatus();
 }
 
-function updateProgress(progress, text) {
+function updateProgress(progress, text, step) {
   elements.progressFill.style.width = `${progress}%`;
   if (text) {
     elements.progressText.textContent = text;
+  }
+  if (step && elements.progressStep) {
+    elements.progressStep.textContent = step;
   }
 }
 
