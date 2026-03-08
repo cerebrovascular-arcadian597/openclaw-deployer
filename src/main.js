@@ -378,6 +378,53 @@ ipcMain.handle('check-openclaw', async () => {
   };
 });
 
+// 一键修复认证
+ipcMain.handle('fix-auth', async (event) => {
+  const openclawPath = getOpenClawPath();
+  
+  if (!openclawPath || !fs.existsSync(openclawPath)) {
+    return { success: false, error: 'OpenClaw 未安装' };
+  }
+  
+  try {
+    event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在生成认证链接...\n' });
+    
+    const child = spawn('node', ['openclaw.mjs', 'dashboard', '--no-open'], {
+      cwd: openclawPath,
+      shell: true,
+      stdio: 'pipe'
+    });
+    
+    let output = '';
+    child.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    child.kill();
+    
+    const urlMatch = output.match(/http[^\s]*/);
+    if (urlMatch) {
+      const url = urlMatch[0];
+      event.sender.send('command-output', { type: 'stdout', data: `[成功] 认证链接: ${url}\n` });
+      
+      require('electron').shell.openExternal(url);
+      event.sender.send('command-output', { type: 'stdout', data: '[信息] 已自动打开浏览器\n' });
+      
+      return { success: true, url };
+    }
+    
+    const defaultUrl = `http://localhost:18789/?token=auto`;
+    require('electron').shell.openExternal(defaultUrl);
+    event.sender.send('command-output', { type: 'stdout', data: `[信息] 已打开默认仪表盘\n` });
+    
+    return { success: true, url: defaultUrl };
+  } catch (error) {
+    event.sender.send('command-output', { type: 'stderr', data: `[错误] ${error.message}\n` });
+    return { success: false, error: error.message };
+  }
+});
+
 // 检测 ClawX 安装
 ipcMain.handle('check-clawx', async () => {
   const clawxPath = getClawXPath();

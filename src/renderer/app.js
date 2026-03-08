@@ -64,6 +64,7 @@ function cacheElements() {
   elements.openclawVersion = document.getElementById('openclaw-version');
   elements.openclawInstallBtn = document.getElementById('openclaw-install-btn');
   elements.openclawUpgradeBtn = document.getElementById('openclaw-upgrade-btn');
+  elements.openclawFixAuthBtn = document.getElementById('openclaw-fix-auth-btn');
   elements.openclawUninstallBtn = document.getElementById('openclaw-uninstall-btn');
   
   elements.clawxStatus = document.getElementById('clawx-status');
@@ -153,6 +154,7 @@ function bindEvents() {
   // OpenClaw 管理
   elements.openclawInstallBtn.addEventListener('click', installOpenClaw);
   elements.openclawUpgradeBtn.addEventListener('click', upgradeOpenClaw);
+  elements.openclawFixAuthBtn.addEventListener('click', fixAuth);
   elements.openclawUninstallBtn.addEventListener('click', uninstallOpenClaw);
   
   // ClawX 管理
@@ -408,6 +410,7 @@ function updateOpenClawUI(status) {
     elements.openclawVersion.textContent = `v${status.version}`;
     elements.openclawInstallBtn.disabled = true;
     elements.openclawUpgradeBtn.disabled = false;
+    elements.openclawFixAuthBtn.disabled = false;
     elements.openclawUninstallBtn.disabled = false;
   } else {
     elements.openclawStatus.textContent = '未安装';
@@ -416,6 +419,7 @@ function updateOpenClawUI(status) {
     elements.openclawVersion.textContent = '';
     elements.openclawInstallBtn.disabled = false;
     elements.openclawUpgradeBtn.disabled = true;
+    elements.openclawFixAuthBtn.disabled = true;
     elements.openclawUninstallBtn.disabled = true;
   }
 }
@@ -550,6 +554,33 @@ async function upgradeOpenClaw() {
     addLog('OpenClaw 升级失败: ' + error.message, 'error');
   } finally {
     hideLoading();
+  }
+}
+
+/**
+ * 一键修复认证
+ */
+async function fixAuth() {
+  if (!state.envStatus.openclaw?.installed) {
+    showToast('请先安装 OpenClaw', 'warning');
+    return;
+  }
+  
+  addLog('开始修复认证...', 'info');
+  
+  try {
+    const result = await window.electronAPI.fixAuth();
+    
+    if (result.success) {
+      showToast('已自动打开认证页面', 'success');
+      addLog('认证链接: ' + result.url, 'success');
+      addLog('请在浏览器中等待自动认证', 'info');
+    } else {
+      throw new Error(result.error || '修复失败');
+    }
+  } catch (error) {
+    showToast('修复认证失败: ' + error.message, 'error');
+    addLog('修复认证失败: ' + error.message, 'error');
   }
 }
 

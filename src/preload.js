@@ -141,6 +141,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
    */
   uninstallClawX: () => ipcRenderer.invoke('uninstall-clawx'),
 
+  /**
+   * 一键修复认证
+   * @returns {Promise<Object>} 修复结果
+   */
+  fixAuth: () => ipcRenderer.invoke('fix-auth'),
+
   // ==================== 配置管理 ====================
   
   /**
