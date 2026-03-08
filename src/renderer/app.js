@@ -451,7 +451,6 @@ function updateClawXUI(status) {
  * 安装 Node.js
  */
 async function installNodejs() {
-  showLoading('正在安装 Node.js...');
   addLog('开始安装 Node.js...', 'info');
   
   try {
@@ -467,8 +466,6 @@ async function installNodejs() {
   } catch (error) {
     showToast('Node.js 安装失败: ' + error.message, 'error');
     addLog('Node.js 安装失败: ' + error.message, 'error');
-  } finally {
-    hideLoading();
   }
 }
 
@@ -476,7 +473,6 @@ async function installNodejs() {
  * 安装 Git
  */
 async function installGit() {
-  showLoading('正在安装 Git...');
   addLog('开始安装 Git...', 'info');
   
   try {
@@ -492,8 +488,6 @@ async function installGit() {
   } catch (error) {
     showToast('Git 安装失败: ' + error.message, 'error');
     addLog('Git 安装失败: ' + error.message, 'error');
-  } finally {
-    hideLoading();
   }
 }
 

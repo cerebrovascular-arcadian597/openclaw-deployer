@@ -440,9 +440,30 @@ async function downloadOpenClawInternal(event) {
   try {
     event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在下载 OpenClaw...\n' });
     
-    // 清理旧目录
+    // 清理旧目录（带重试）
     if (fs.existsSync(openclawPath)) {
-      fs.rmSync(openclawPath, { recursive: true, force: true });
+      event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在清理旧目录...\n' });
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          fs.rmSync(openclawPath, { recursive: true, force: true });
+          break;
+        } catch (e) {
+          retries--;
+          if (retries === 0) {
+            event.sender.send('command-output', { type: 'stderr', data: `[警告] 无法删除旧目录，尝试重命名...\n` });
+            // 尝试重命名旧目录
+            const backupPath = openclawPath + '_old_' + Date.now();
+            try {
+              fs.renameSync(openclawPath, backupPath);
+            } catch (renameErr) {
+              throw new Error('无法清理旧目录，请手动删除: ' + openclawPath);
+            }
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
     }
     if (fs.existsSync(tempZip)) {
       fs.unlinkSync(tempZip);
