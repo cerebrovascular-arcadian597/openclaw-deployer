@@ -1032,6 +1032,16 @@ ipcMain.handle('download-file', async (event, url, destPath) => {
 
 // 下载文件
 async function downloadFile(url, destPath, event) {
+  // 清理可能存在的临时文件
+  if (fs.existsSync(destPath)) {
+    try {
+      fs.unlinkSync(destPath);
+    } catch (e) {
+      // 文件被占用，尝试使用新文件名
+      destPath = destPath + '_' + Date.now() + '.zip';
+    }
+  }
+  
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(destPath);
     const protocol = url.startsWith('https') ? https : http;
