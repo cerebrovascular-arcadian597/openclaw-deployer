@@ -32,7 +32,9 @@ const MIRRORS = {
   gitWin: 'https://npmmirror.com/mirrors/git-for-windows',
   github: 'https://gh.api.99988866.xyz/https://github.com',
   openclaw: 'https://github.com/openclaw/openclaw.git',
-  openclawZip: 'https://github.com/openclaw/openclaw/archive/refs/heads/main.zip'
+  openclawZip: 'https://github.com/openclaw/openclaw/archive/refs/heads/main.zip',
+  clawx: 'https://github.com/ValueCell-ai/ClawX.git',
+  clawxZip: 'https://github.com/ValueCell-ai/ClawX/archive/refs/heads/main.zip'
 };
 
 // OpenClaw 默认端口
@@ -42,6 +44,19 @@ const OPENCLAW_PORT = 18789;
 function getOpenClawPath() {
   const primaryPath = path.join(os.homedir(), 'openclaw-main');
   const altPath = path.join(os.homedir(), '.openclaw');
+  
+  if (fs.existsSync(primaryPath)) {
+    return primaryPath;
+  } else if (fs.existsSync(altPath)) {
+    return altPath;
+  }
+  return primaryPath;
+}
+
+// 获取 ClawX 安装路径
+function getClawXPath() {
+  const primaryPath = path.join(os.homedir(), 'ClawX-main');
+  const altPath = path.join(os.homedir(), 'ClawX');
   
   if (fs.existsSync(primaryPath)) {
     return primaryPath;
@@ -286,6 +301,33 @@ ipcMain.handle('check-openclaw', async () => {
     path: installPath,
     version,
     built
+  };
+});
+
+// 检测 ClawX 安装
+ipcMain.handle('check-clawx', async () => {
+  const clawxPath = getClawXPath();
+  
+  if (!fs.existsSync(clawxPath)) {
+    return { installed: false };
+  }
+
+  let version = 'unknown';
+  
+  try {
+    const packageJsonPath = path.join(clawxPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      version = packageJson.version || 'unknown';
+    }
+  } catch (e) {
+    // 忽略错误
+  }
+
+  return {
+    installed: true,
+    path: clawxPath,
+    version
   };
 });
 
@@ -636,6 +678,71 @@ ipcMain.handle('uninstall-openclaw', async () => {
     
     if (fs.existsSync(openclawPath)) {
       fs.rmSync(openclawPath, { recursive: true, force: true });
+    }
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// 下载 ClawX
+ipcMain.handle('download-clawx', async (event) => {
+  const clawxPath = getClawXPath();
+  const tempZip = path.join(os.tmpdir(), 'clawx.zip');
+  
+  try {
+    event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在下载 ClawX...\n' });
+    
+    // 清理旧目录
+    if (fs.existsSync(clawxPath)) {
+      fs.rmSync(clawxPath, { recursive: true, force: true });
+    }
+    if (fs.existsSync(tempZip)) {
+      fs.unlinkSync(tempZip);
+    }
+    
+    // 下载 zip 文件
+    await downloadFile(MIRRORS.clawxZip, tempZip, event);
+    
+    event.sender.send('command-output', { type: 'stdout', data: '[成功] 下载完成\n' });
+    event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在解压...\n' });
+    
+    // 解压
+    const extractPath = path.join(os.homedir(), 'clawx-temp');
+    if (fs.existsSync(extractPath)) {
+      fs.rmSync(extractPath, { recursive: true, force: true });
+    }
+    
+    // 使用 PowerShell 解压
+    await execPromise(`powershell -Command "Expand-Archive -Path '${tempZip}' -DestinationPath '${extractPath}' -Force"`);
+    
+    // 重命名目录
+    const extractedDir = path.join(extractPath, 'ClawX-main');
+    if (fs.existsSync(extractedDir)) {
+      fs.renameSync(extractedDir, clawxPath);
+      fs.rmSync(extractPath, { recursive: true, force: true });
+    }
+    
+    // 清理临时文件
+    fs.unlinkSync(tempZip);
+    
+    event.sender.send('command-output', { type: 'stdout', data: '[成功] ClawX 解压完成\n' });
+    event.sender.send('command-output', { type: 'stdout', data: '[信息] 请按照 ClawX 文档进行安装配置\n' });
+    
+    return { success: true };
+  } catch (error) {
+    event.sender.send('command-output', { type: 'stderr', data: `[错误] ${error.message}\n` });
+    return { success: false, error: error.message };
+  }
+});
+
+// 卸载 ClawX
+ipcMain.handle('uninstall-clawx', async () => {
+  const clawxPath = getClawXPath();
+  
+  try {
+    if (fs.existsSync(clawxPath)) {
+      fs.rmSync(clawxPath, { recursive: true, force: true });
     }
     return { success: true };
   } catch (error) {

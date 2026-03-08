@@ -155,7 +155,18 @@ start.bat
 - ⬆️ 一键升级 OpenClaw
 - 🗑️ 一键卸载 OpenClaw
 
-### 4. 可视化配置面板
+### 4. ClawX 支持
+
+- ⬇️ 一键下载 ClawX 源码
+- 🔗 快速访问 ClawX 文档
+- 🗑️ 一键删除 ClawX
+
+ClawX 是另一个小龙虾 AI 项目，可单独克隆使用：
+```bash
+git clone https://github.com/ValueCell-ai/ClawX.git
+```
+
+### 5. 可视化配置面板
 
 支持配置：
 - 🔑 大模型 API Key
@@ -164,14 +175,14 @@ start.bat
 - 🔌 服务端口
 - 🌡️ Temperature 参数
 
-### 5. 服务全生命周期管理
+### 6. 服务全生命周期管理
 
 - ▶️ 一键启动 OpenClaw 服务
 - ⏹️ 一键停止服务
 - 🌐 自动打开浏览器访问管理面板
 - 📊 实时显示运行时间和状态
 
-### 6. 实时日志系统
+### 7. 实时日志系统
 
 - 📝 全流程实时输出执行日志
 - ⏰ 带时间戳的日志记录

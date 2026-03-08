@@ -66,6 +66,12 @@ function cacheElements() {
   elements.openclawUpgradeBtn = document.getElementById('openclaw-upgrade-btn');
   elements.openclawUninstallBtn = document.getElementById('openclaw-uninstall-btn');
   
+  elements.clawxStatus = document.getElementById('clawx-status');
+  elements.clawxDesc = document.getElementById('clawx-desc');
+  elements.clawxVersion = document.getElementById('clawx-version');
+  elements.clawxInstallBtn = document.getElementById('clawx-install-btn');
+  elements.clawxUninstallBtn = document.getElementById('clawx-uninstall-btn');
+  
   // 一键修复
   elements.quickFixBtn = document.getElementById('quick-fix-btn');
   
@@ -136,6 +142,10 @@ function bindEvents() {
   elements.openclawInstallBtn.addEventListener('click', installOpenClaw);
   elements.openclawUpgradeBtn.addEventListener('click', upgradeOpenClaw);
   elements.openclawUninstallBtn.addEventListener('click', uninstallOpenClaw);
+  
+  // ClawX 管理
+  elements.clawxInstallBtn.addEventListener('click', downloadClawX);
+  elements.clawxUninstallBtn.addEventListener('click', uninstallClawX);
   
   // 一键修复
   elements.quickFixBtn.addEventListener('click', quickFix);
@@ -267,19 +277,21 @@ async function refreshAllStatus() {
   showLoading('正在检测环境...');
   
   try {
-    const [admin, nodejs, git, openclaw] = await Promise.all([
+    const [admin, nodejs, git, openclaw, clawx] = await Promise.all([
       window.electronAPI.checkAdmin(),
       window.electronAPI.checkNodejs(),
       window.electronAPI.checkGit(),
-      window.electronAPI.checkOpenClaw()
+      window.electronAPI.checkOpenClaw(),
+      window.electronAPI.checkClawX()
     ]);
     
-    state.envStatus = { admin, nodejs, git, openclaw };
+    state.envStatus = { admin, nodejs, git, openclaw, clawx };
     
     updateAdminUI(admin);
     updateNodejsUI(nodejs);
     updateGitUI(git);
     updateOpenClawUI(openclaw);
+    updateClawXUI(clawx);
     
     hideLoading();
   } catch (error) {
@@ -379,6 +391,29 @@ function updateOpenClawUI(status) {
     elements.openclawInstallBtn.disabled = false;
     elements.openclawUpgradeBtn.disabled = true;
     elements.openclawUninstallBtn.disabled = true;
+  }
+}
+
+/**
+ * 更新 ClawX UI
+ */
+function updateClawXUI(status) {
+  state.envStatus.clawx = status;
+  
+  if (status.installed) {
+    elements.clawxStatus.textContent = '已下载';
+    elements.clawxStatus.className = 'status-badge success';
+    elements.clawxDesc.textContent = 'ClawX 已下载，请按文档安装';
+    elements.clawxVersion.textContent = `v${status.version}`;
+    elements.clawxInstallBtn.textContent = '重新下载';
+    elements.clawxUninstallBtn.disabled = false;
+  } else {
+    elements.clawxStatus.textContent = '未下载';
+    elements.clawxStatus.className = 'status-badge warning';
+    elements.clawxDesc.textContent = '下载 ClawX 源码';
+    elements.clawxVersion.textContent = '';
+    elements.clawxInstallBtn.textContent = '下载';
+    elements.clawxUninstallBtn.disabled = true;
   }
 }
 
@@ -531,6 +566,68 @@ async function uninstallOpenClaw() {
   } catch (error) {
     showToast('卸载失败: ' + error.message, 'error');
     addLog('卸载失败: ' + error.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+/**
+ * 下载 ClawX
+ */
+async function downloadClawX() {
+  showLoading('正在下载 ClawX...');
+  addLog('开始下载 ClawX...', 'info');
+  addLog('仓库地址: https://github.com/ValueCell-ai/ClawX', 'info');
+  
+  try {
+    const result = await window.electronAPI.downloadClawX();
+    
+    if (result.success) {
+      showToast('ClawX 下载成功！请按照文档进行安装配置', 'success');
+      addLog('ClawX 下载完成，请查看文档进行安装', 'success');
+      await refreshAllStatus();
+    } else {
+      throw new Error(result.error || '下载失败');
+    }
+  } catch (error) {
+    showToast('ClawX 下载失败: ' + error.message, 'error');
+    addLog('ClawX 下载失败: ' + error.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+/**
+ * 卸载 ClawX
+ */
+async function uninstallClawX() {
+  const result = await window.electronAPI.showMessage({
+    type: 'question',
+    buttons: ['取消', '确认删除'],
+    defaultId: 0,
+    title: '确认删除',
+    message: '确定要删除 ClawX 吗？',
+    detail: '这将删除 ClawX 源码目录。'
+  });
+  
+  if (result.response !== 1) return;
+  
+  showLoading('正在删除 ClawX...');
+  addLog('开始删除 ClawX...', 'info');
+  
+  try {
+    const result = await window.electronAPI.uninstallClawX();
+    
+    if (result.success) {
+      showToast('ClawX 已删除', 'success');
+      addLog('ClawX 删除完成', 'success');
+      await refreshAllStatus();
+    } else {
+      throw new Error(result.error || '删除失败');
+    }
+  } catch (error) {
+    showToast('删除失败: ' + error.message, 'error');
+    addLog('删除失败: ' + error.message, 'error');
   } finally {
     hideLoading();
   }

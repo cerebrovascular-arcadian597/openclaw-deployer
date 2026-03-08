@@ -121,6 +121,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
    */
   uninstallOpenClaw: () => ipcRenderer.invoke('uninstall-openclaw'),
 
+  // ==================== ClawX 管理 ====================
+  
+  /**
+   * 检测 ClawX 安装状态
+   * @returns {Promise<Object>} { installed: boolean, path?: string, version?: string }
+   */
+  checkClawX: () => ipcRenderer.invoke('check-clawx'),
+
+  /**
+   * 下载 ClawX 源码
+   * @returns {Promise<Object>} 下载结果
+   */
+  downloadClawX: () => ipcRenderer.invoke('download-clawx'),
+
+  /**
+   * 卸载 ClawX
+   * @returns {Promise<Object>} 卸载结果
+   */
+  uninstallClawX: () => ipcRenderer.invoke('uninstall-clawx'),
+
   // ==================== 配置管理 ====================
   
   /**
