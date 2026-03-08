@@ -1043,6 +1043,7 @@ async function downloadFile(url, destPath, event) {
         if (totalSize > 0 && event) {
           const progress = Math.round((downloaded / totalSize) * 100);
           event.sender.send('download-progress', { progress, downloaded, total: totalSize });
+          event.sender.send('command-output', { type: 'stdout', data: `[进度] ${progress}% (${downloaded}/${totalSize} 字节)\n` });
         }
       });
 

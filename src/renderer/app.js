@@ -210,8 +210,10 @@ function bindEvents() {
   window.electronAPI.onDownloadProgress((data) => {
     const downloadedMB = (data.downloaded / 1024 / 1024).toFixed(2);
     const totalMB = (data.total / 1024 / 1024).toFixed(2);
-    const progressText = `下载中: ${downloadedMB} MB / ${totalMB} MB`;
-    updateProgress(data.progress, progressText);
+    const percent = Math.round(data.progress);
+    const progressText = `正在下载 OpenClaw... ${percent}%`;
+    const detail = `已下载: ${downloadedMB} MB / ${totalMB} MB`;
+    updateProgress(data.progress, progressText, '', detail);
   });
 
   window.electronAPI.onInstallProgress((data) => {
