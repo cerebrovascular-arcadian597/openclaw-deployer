@@ -103,9 +103,47 @@ function getClawXPath() {
 }
 
 /**
+ * 检查并请求管理员权限
+ */
+function checkAdminRights() {
+  const { execSync } = require('child_process');
+  try {
+    execSync('net session', { shell: true, stdio: 'ignore' });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * 以管理员权限重新启动应用
+ */
+function restartAsAdmin() {
+  const { spawn } = require('child_process');
+  const exePath = process.execPath;
+  const args = process.argv.slice(1);
+  
+  const psCommand = `Start-Process -FilePath '${exePath}' -ArgumentList '${args.join(' ')}' -Verb RunAs -WorkingDirectory '${process.cwd()}'`;
+  spawn('powershell', ['-Command', psCommand], { 
+    shell: true, 
+    detached: true,
+    stdio: 'ignore' 
+  });
+  
+  app.quit();
+}
+
+/**
  * 创建主窗口
  */
 function createWindow() {
+  // 检查是否以管理员运行
+  if (!checkAdminRights()) {
+    console.log('未以管理员权限运行，将请求提升权限...');
+    restartAsAdmin();
+    return;
+  }
+  
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
