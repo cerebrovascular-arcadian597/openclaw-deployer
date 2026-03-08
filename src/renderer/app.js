@@ -406,6 +406,7 @@ function updateClawXUI(status) {
     elements.clawxDesc.textContent = 'ClawX 已下载，请按文档安装';
     elements.clawxVersion.textContent = `v${status.version}`;
     elements.clawxInstallBtn.textContent = '重新下载';
+    elements.clawxInstallBtn.disabled = false;
     elements.clawxUninstallBtn.disabled = false;
   } else {
     elements.clawxStatus.textContent = '未下载';
@@ -413,6 +414,7 @@ function updateClawXUI(status) {
     elements.clawxDesc.textContent = '下载 ClawX 源码';
     elements.clawxVersion.textContent = '';
     elements.clawxInstallBtn.textContent = '下载';
+    elements.clawxInstallBtn.disabled = false;
     elements.clawxUninstallBtn.disabled = true;
   }
 }

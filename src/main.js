@@ -34,7 +34,7 @@ const MIRRORS = {
   openclaw: 'https://github.com/openclaw/openclaw.git',
   openclawZip: 'https://github.com/openclaw/openclaw/archive/refs/heads/main.zip',
   clawx: 'https://github.com/ValueCell-ai/ClawX.git',
-  clawxZip: 'https://github.com/ValueCell-ai/ClawX/archive/refs/heads/main.zip'
+  clawxZip: 'https://gh.api.99988866.xyz/https://github.com/ValueCell-ai/ClawX/archive/refs/heads/main.zip'
 };
 
 // OpenClaw 默认端口
@@ -688,48 +688,35 @@ ipcMain.handle('uninstall-openclaw', async () => {
 // 下载 ClawX
 ipcMain.handle('download-clawx', async (event) => {
   const clawxPath = getClawXPath();
-  const tempZip = path.join(os.tmpdir(), 'clawx.zip');
   
   try {
     event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在下载 ClawX...\n' });
+    event.sender.send('command-output', { type: 'stdout', data: '[信息] 使用 git clone 方式下载...\n' });
     
     // 清理旧目录
     if (fs.existsSync(clawxPath)) {
       fs.rmSync(clawxPath, { recursive: true, force: true });
     }
-    if (fs.existsSync(tempZip)) {
-      fs.unlinkSync(tempZip);
+    
+    // 使用 git clone 下载
+    const cloneUrl = 'https://github.com/ValueCell-ai/ClawX.git';
+    const targetPath = path.join(os.homedir(), 'ClawX');
+    
+    const child = spawn('git', ['clone', cloneUrl, targetPath], {
+      shell: true,
+      cwd: os.homedir()
+    });
+    
+    const result = await handleStreamOutput(child, event);
+    
+    if (result.success) {
+      event.sender.send('command-output', { type: 'stdout', data: '[成功] ClawX 下载完成\n' });
+      event.sender.send('command-output', { type: 'stdout', data: '[信息] 请按照 ClawX 文档进行安装配置\n' });
+      event.sender.send('command-output', { type: 'stdout', data: `[信息] ClawX 目录: ${targetPath}\n` });
+      return { success: true, path: targetPath };
+    } else {
+      throw new Error(result.stderr || result.error || 'git clone 失败');
     }
-    
-    // 下载 zip 文件
-    await downloadFile(MIRRORS.clawxZip, tempZip, event);
-    
-    event.sender.send('command-output', { type: 'stdout', data: '[成功] 下载完成\n' });
-    event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在解压...\n' });
-    
-    // 解压
-    const extractPath = path.join(os.homedir(), 'clawx-temp');
-    if (fs.existsSync(extractPath)) {
-      fs.rmSync(extractPath, { recursive: true, force: true });
-    }
-    
-    // 使用 PowerShell 解压
-    await execPromise(`powershell -Command "Expand-Archive -Path '${tempZip}' -DestinationPath '${extractPath}' -Force"`);
-    
-    // 重命名目录
-    const extractedDir = path.join(extractPath, 'ClawX-main');
-    if (fs.existsSync(extractedDir)) {
-      fs.renameSync(extractedDir, clawxPath);
-      fs.rmSync(extractPath, { recursive: true, force: true });
-    }
-    
-    // 清理临时文件
-    fs.unlinkSync(tempZip);
-    
-    event.sender.send('command-output', { type: 'stdout', data: '[成功] ClawX 解压完成\n' });
-    event.sender.send('command-output', { type: 'stdout', data: '[信息] 请按照 ClawX 文档进行安装配置\n' });
-    
-    return { success: true };
   } catch (error) {
     event.sender.send('command-output', { type: 'stderr', data: `[错误] ${error.message}\n` });
     return { success: false, error: error.message };
