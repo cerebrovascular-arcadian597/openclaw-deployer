@@ -430,6 +430,10 @@ ipcMain.handle('install-git-windows', async (event) => {
 
 // 下载 OpenClaw
 ipcMain.handle('download-openclaw', async (event) => {
+  return downloadOpenClawInternal(event);
+});
+
+async function downloadOpenClawInternal(event) {
   const openclawPath = getOpenClawPath();
   const tempZip = path.join(os.tmpdir(), 'openclaw.zip');
   
@@ -476,10 +480,14 @@ ipcMain.handle('download-openclaw', async (event) => {
     event.sender.send('command-output', { type: 'stderr', data: `[错误] ${error.message}\n` });
     return { success: false, error: error.message };
   }
-});
+}
 
 // 安装 OpenClaw 依赖
 ipcMain.handle('install-openclaw-deps', async (event) => {
+  return installOpenClawDepsInternal(event);
+});
+
+async function installOpenClawDepsInternal(event) {
   const openclawPath = getOpenClawPath();
   
   try {
@@ -530,10 +538,14 @@ ipcMain.handle('install-openclaw-deps', async (event) => {
     event.sender.send('command-output', { type: 'stderr', data: `[错误] ${error.message}\n` });
     return { success: false, error: error.message };
   }
-});
+}
 
 // 构建 OpenClaw
 ipcMain.handle('build-openclaw', async (event) => {
+  return buildOpenClawInternal(event);
+});
+
+async function buildOpenClawInternal(event) {
   const openclawPath = getOpenClawPath();
   
   try {
@@ -581,10 +593,14 @@ ipcMain.handle('build-openclaw', async (event) => {
     event.sender.send('command-output', { type: 'stderr', data: `[错误] ${error.message}\n` });
     return { success: false, error: error.message };
   }
-});
+}
 
 // 初始化 OpenClaw 配置
 ipcMain.handle('init-openclaw-config', async (event) => {
+  return initOpenClawConfigInternal(event);
+});
+
+async function initOpenClawConfigInternal(event) {
   const openclawPath = getOpenClawPath();
   
   try {
@@ -611,15 +627,15 @@ ipcMain.handle('init-openclaw-config', async (event) => {
     event.sender.send('command-output', { type: 'stderr', data: `[错误] ${error.message}\n` });
     return { success: false, error: error.message };
   }
-});
+}
 
 // 一键安装 OpenClaw（完整流程）
 ipcMain.handle('install-openclaw-full', async (event) => {
   const steps = [
-    { name: '下载 OpenClaw', handler: 'download-openclaw' },
-    { name: '安装依赖', handler: 'install-openclaw-deps' },
-    { name: '构建项目', handler: 'build-openclaw' },
-    { name: '初始化配置', handler: 'init-openclaw-config' }
+    { name: '下载 OpenClaw', fn: downloadOpenClawInternal },
+    { name: '安装依赖', fn: installOpenClawDepsInternal },
+    { name: '构建项目', fn: buildOpenClawInternal },
+    { name: '初始化配置', fn: initOpenClawConfigInternal }
   ];
   
   const results = [];
@@ -638,7 +654,7 @@ ipcMain.handle('install-openclaw-full', async (event) => {
     });
     
     try {
-      const result = await ipcMain.invoke(step.handler, event);
+      const result = await step.fn(event);
       results.push({ step: step.name, ...result });
       
       if (!result.success) {
@@ -664,7 +680,7 @@ ipcMain.handle('install-openclaw-full', async (event) => {
 
 // 安装 OpenClaw
 ipcMain.handle('install-openclaw', async (event) => {
-  return ipcMain.invoke('install-openclaw-full', event);
+  return installOpenClawFull(event);
 });
 
 // 升级 OpenClaw
@@ -696,7 +712,7 @@ ipcMain.handle('upgrade-openclaw', async (event) => {
       await handleStreamOutput(pnpmChild, event);
       
       event.sender.send('command-output', { type: 'stdout', data: '[信息] 正在重新构建...\n' });
-      await ipcMain.invoke('build-openclaw', event);
+      await buildOpenClawInternal(event);
     }
     
     return result;
