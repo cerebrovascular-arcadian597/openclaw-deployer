@@ -963,6 +963,8 @@ ipcMain.handle('start-service', async (event) => {
     });
 
     let started = false;
+    let dashboardUrl = '';
+    let token = '';
 
     serviceProcess.stdout.on('data', (data) => {
       const chunk = data.toString();
@@ -971,6 +973,12 @@ ipcMain.handle('start-service', async (event) => {
       if (chunk.includes('listening') || chunk.includes('started') || chunk.includes('running')) {
         started = true;
         event.sender.send('service-status', { running: true });
+      }
+      
+      // 捕获 token
+      const tokenMatch = chunk.match(/token[=:]?\s*([a-zA-Z0-9_-]+)/i);
+      if (tokenMatch) {
+        token = tokenMatch[1];
       }
     });
 
@@ -983,10 +991,32 @@ ipcMain.handle('start-service', async (event) => {
       event.sender.send('service-status', { running: false, code });
     });
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // 等待服务启动并获取 token
+    await new Promise(resolve => setTimeout(resolve, 3000));
     
+    // 获取带 token 的仪表盘 URL
     if (started) {
-      event.sender.send('command-output', { type: 'stdout', data: `[成功] OpenClaw 服务已启动，访问地址: http://127.0.0.1:${OPENCLAW_PORT}\n` });
+      try {
+        const dashChild = spawn('node', ['openclaw.mjs', 'dashboard', '--no-open'], {
+          cwd: openclawPath,
+          shell: true,
+          env: { ...process.env }
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // 读取 token 文件或使用默认 URL
+        dashboardUrl = `http://localhost:${OPENCLAW_PORT}/?token=${token || 'auto'}`;
+        
+        // 打开浏览器
+        require('electron').shell.openExternal(dashboardUrl);
+        
+        event.sender.send('command-output', { type: 'stdout', data: `[成功] OpenClaw 服务已启动\n` });
+        event.sender.send('command-output', { type: 'stdout', data: `[信息] 仪表盘地址: ${dashboardUrl}\n` });
+        event.sender.send('command-output', { type: 'stdout', data: `[信息] 已自动打开浏览器\n` });
+      } catch (e) {
+        event.sender.send('command-output', { type: 'stdout', data: `[成功] OpenClaw 服务已启动，访问地址: http://127.0.0.1:${OPENCLAW_PORT}\n` });
+      }
     }
     
     return { success: true, started, port: OPENCLAW_PORT };
